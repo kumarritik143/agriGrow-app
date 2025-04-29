@@ -32,109 +32,147 @@ const ChatScreen = ({ route }) => {
   const flatListRef = useRef(null);
 
   useEffect(() => {
-    getCurrentUser();
-    setupSocket();
-    fetchMessages();
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
+    const getCurrentUser = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('userData');
+        if (userData) {
+          const user = JSON.parse(userData);
+          console.log('Current user:', user);
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
       }
     };
+
+    getCurrentUser();
   }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchMessages();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  const getCurrentUser = async () => {
-    try {
-      const userData = await AsyncStorage.getItem('userData');
-      if (userData) {
-        const user = JSON.parse(userData);
-        console.log('Current user:', user); // Debug log
-        setCurrentUser(user);
-      }
-    } catch (error) {
-      console.error('Error getting current user:', error);
+    if (!currentUser || !participant) {
+      console.log('Cannot setup socket: missing user or participant data');
+      return;
     }
-  };
 
-  const setupSocket = () => {
-    socketRef.current = io(API_URL);
+    console.log('Setting up socket connection...');
+    socketRef.current = io(API_URL.replace('/api', ''), {
+      transports: ['websocket', 'polling'],
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      path: '/socket.io',
+      forceNew: true,
+      allowEIO3: true,
+      query: {
+        EIO: '3'
+      }
+    });
     
-    socketRef.current.on('connect', () => {
-      console.log('Socket connected');
+    const socket = socketRef.current;
+
+    socket.on('connect', () => {
+      console.log('Socket connected with ID:', socket.id);
+      const roomId = [currentUser._id, participant._id].sort().join('_');
+      console.log('Joining room:', roomId);
+      socket.emit('joinRoom', roomId);
     });
 
-    socketRef.current.on('newMessage', (message) => {
+    socket.on('newMessage', (message) => {
       console.log('New message received:', message);
       if (
-        message.senderId === participant._id ||
-        message.receiverId === participant._id
+        (message.senderId === participant._id && message.receiverId === currentUser._id) ||
+        (message.receiverId === participant._id && message.senderId === currentUser._id)
       ) {
+        console.log('Message is for this chat, updating state');
         setMessages(prevMessages => {
-          // Check if message already exists to avoid duplicates
           const messageExists = prevMessages.some(m => m._id === message._id);
           if (!messageExists) {
-            return [...prevMessages, message];
+            const updatedMessages = [...prevMessages, message];
+            console.log('Updated messages count:', updatedMessages.length);
+            return updatedMessages;
           }
           return prevMessages;
         });
         
-        // Scroll to bottom when new message arrives
-        flatListRef.current?.scrollToEnd({ animated: true });
+        setTimeout(() => {
+          if (flatListRef.current) {
+            console.log('Scrolling to bottom');
+            flatListRef.current.scrollToEnd({ animated: true });
+          }
+        }, 100);
+      } else {
+        console.log('Message is not for this chat, ignoring');
       }
     });
 
-    socketRef.current.on('disconnect', () => {
+    socket.on('disconnect', () => {
       console.log('Socket disconnected');
     });
 
-    socketRef.current.on('error', (error) => {
+    socket.on('error', (error) => {
       console.error('Socket error:', error);
     });
-  };
 
-  const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(
-        `${API_URL}/chat/messages/${participant._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    return () => {
+      console.log('Cleaning up socket connection');
+      socket.disconnect();
+    };
+  }, [currentUser?._id, participant?._id]);
+
+  useEffect(() => {
+    if (!currentUser || !participant) return;
+
+    const fetchMessages = async () => {
+      try {
+        setLoading(true);
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await fetch(
+          `${API_URL}/chat/messages/${participant._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success) {
+          setMessages(data.data);
+          setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: false });
+          }, 100);
         }
-      );
-      const data = await response.json();
-      if (data.success) {
-        setMessages(data.data);
-        // Scroll to bottom after loading messages
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: false });
-        }, 100);
+      } catch (error) {
+        console.error('Fetch messages error:', error);
+        Alert.alert(
+          'Error',
+          'Failed to load messages. Please try again.'
+        );
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Fetch messages error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to load messages. Please try again.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchMessages();
+  }, [currentUser?._id, participant?._id]);
 
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !currentUser) {
+      console.log('Cannot send message: empty message or no current user');
+      return;
+    }
 
     try {
       const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      console.log('Sending message to:', participant._id);
       const response = await fetch(`${API_URL}/chat/send`, {
         method: 'POST',
         headers: {
@@ -149,27 +187,14 @@ const ChatScreen = ({ route }) => {
 
       const data = await response.json();
       if (data.success) {
-        // Add the new message to the messages state immediately
-        const newMessageObj = {
-          _id: data.data._id, // Assuming your backend returns the message ID
-          sender: currentUser._id,
-          receiver: participant._id,
-          message: newMessage.trim(),
-          timestamp: new Date(),
-        };
-        
-        setMessages(prevMessages => [...prevMessages, newMessageObj]);
-        setNewMessage(''); // Clear input field
-        
-        // Scroll to the bottom
-        flatListRef.current?.scrollToEnd({ animated: true });
+        console.log('Message sent successfully');
+        setNewMessage('');
+      } else {
+        throw new Error(data.message || 'Failed to send message');
       }
     } catch (error) {
       console.error('Send message error:', error);
-      Alert.alert(
-        'Error',
-        'Failed to send message. Please try again.'
-      );
+      Alert.alert('Error', 'Failed to send message. Please try again.');
     }
   };
 

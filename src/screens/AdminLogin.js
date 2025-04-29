@@ -17,8 +17,8 @@ import {AuthContext} from '../context/AuthContext';
 import {adminAPI} from '../api/apiService'; // Adjust the import path as necessary
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const API_URL = 'http://localhost:5001/api'; // Use your API URL
-// const API_URL='https://agrigrow-backend.onrender.com/api';
+// const API_URL = 'http://localhost:5001/api'; // Use your API URL
+const API_URL='https://agrigrow-backend.onrender.com/api';
 
 
 const AdminLogin = () => {
