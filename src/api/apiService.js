@@ -5,8 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // Base URL for your API
-// const API_URL = 'http://127.0.0.1:5001/api'; // Use this for iOS simulator
-const API_URL = 'https://agrigrow-backend.onrender.com/api';
+const API_URL = 'http://127.0.0.1:5001/api'; // Use this for iOS simulator
+// const API_URL = 'https://agrigrow-backend.onrender.com/api';
 
 console.log('Platform:', Platform.OS);
 console.log('Using API URL:', API_URL);
@@ -125,6 +125,16 @@ export const adminAPI = {
       throw error.response ? error.response.data : new Error('Network error');
     }
   },
+  create: async adminData => {
+    try {
+      const response = await axios.post(`${API_URL}/admin/create`, adminData);
+      console.log('Create admin response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.log('Create admin error:', error.response?.data || error);
+      throw error.response ? error.response.data : new Error('Network error');
+    }
+  }
 };
 
 export const productAPI = {

@@ -29,9 +29,12 @@ const ChatListScreen = () => {
       setLoading(true);
       setError(null);
       
+      console.log('Fetching participants...');
       const response = await chatAPI.getChatParticipants();
+      console.log('Raw API response:', JSON.stringify(response, null, 2));
       
       if (response.success) {
+        console.log('Setting participants:', JSON.stringify(response.data, null, 2));
         setParticipants(response.data);
       } else {
         throw new Error(response.message || 'Failed to fetch participants');
@@ -58,28 +61,40 @@ const ChatListScreen = () => {
     }
   };
 
-  const renderParticipant = ({ item }) => (
-    <TouchableOpacity
-      style={styles.participantCard}
-      onPress={() => navigation.navigate('Chat', { participant: item })}>
-      <View style={styles.avatarContainer}>
-        {item.profileImage ? (
-          <Image
-            source={{ uri: item.profileImage }}
-            style={styles.avatar}
-          />
-        ) : (
-          <Icon name="person" size={30} color="#666666" />
-        )}
-      </View>
-      <View style={styles.participantInfo}>
-        <Text style={styles.participantName}>
-          {item.fullName || item.email}
-        </Text>
-      </View>
-      <Icon name="chevron-right" size={24} color="#666666" />
-    </TouchableOpacity>
-  );
+  const renderParticipant = ({ item }) => {
+    console.log('Rendering participant:', JSON.stringify(item, null, 2));
+    
+    // The name field will contain either the admin's name or user's fullName
+    const displayName = item.name || item.email;
+    console.log('Display name determined:', {
+      name: item.name,
+      email: item.email,
+      isAdmin: item.isAdmin,
+      finalDisplayName: displayName
+    });
+    
+    return (
+      <TouchableOpacity
+        style={styles.participantCard}
+        onPress={() => navigation.navigate('Chat', { participant: item })}>
+        <View style={styles.avatarContainer}>
+          {item.profileImage ? (
+            <Image
+              source={{ uri: item.profileImage }}
+              style={styles.avatar}
+            />
+          ) : (
+            <Icon name="person" size={30} color="#666666" />
+          )}
+        </View>
+        <View style={styles.participantInfo}>
+          <Text style={styles.participantName}>{displayName}</Text>
+          {item.isAdmin && <Text style={styles.adminLabel}>Admin</Text>}
+        </View>
+        <Icon name="chevron-right" size={24} color="#666666" />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -173,6 +188,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#333333',
+  },
+  adminLabel: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#666666',
   },
   emptyContainer: {
     flex: 1,
