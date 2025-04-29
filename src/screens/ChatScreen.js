@@ -176,26 +176,6 @@ const ChatScreen = ({ route }) => {
         throw new Error('No authentication token found');
       }
 
-      // Create a temporary message object
-      const tempMessage = {
-        _id: Date.now().toString(), // Temporary ID
-        sender: currentUser._id,
-        receiver: participant._id,
-        message: newMessage.trim(),
-        timestamp: new Date(),
-      };
-
-      // Immediately add the message to the UI
-      setMessages(prevMessages => [...prevMessages, tempMessage]);
-      setNewMessage('');
-      
-      // Scroll to bottom
-      setTimeout(() => {
-        if (flatListRef.current) {
-          flatListRef.current.scrollToEnd({ animated: true });
-        }
-      }, 100);
-
       // Send the message to the server
       const response = await fetch(`${API_URL}/chat/send`, {
         method: 'POST',
@@ -213,11 +193,12 @@ const ChatScreen = ({ route }) => {
       if (!data.success) {
         throw new Error(data.message || 'Failed to send message');
       }
+
+      // Clear the input field
+      setNewMessage('');
     } catch (error) {
       console.error('Send message error:', error);
       Alert.alert('Error', 'Failed to send message. Please try again.');
-      // Remove the temporary message if sending failed
-      setMessages(prevMessages => prevMessages.filter(m => m._id !== tempMessage._id));
     }
   };
 
