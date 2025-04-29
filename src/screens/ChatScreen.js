@@ -88,7 +88,11 @@ const ChatScreen = ({ route }) => {
         setMessages(prevMessages => {
           const messageExists = prevMessages.some(m => m._id === message._id);
           if (!messageExists) {
-            const updatedMessages = [...prevMessages, message];
+            const updatedMessages = [...prevMessages, {
+              ...message,
+              sender: message.senderId,
+              receiver: message.receiverId
+            }];
             console.log('Updated messages count:', updatedMessages.length);
             return updatedMessages;
           }
@@ -172,7 +176,27 @@ const ChatScreen = ({ route }) => {
         throw new Error('No authentication token found');
       }
 
-      console.log('Sending message to:', participant._id);
+      // Create a temporary message object
+      const tempMessage = {
+        _id: Date.now().toString(), // Temporary ID
+        sender: currentUser._id,
+        receiver: participant._id,
+        message: newMessage.trim(),
+        timestamp: new Date(),
+      };
+
+      // Immediately add the message to the UI
+      setMessages(prevMessages => [...prevMessages, tempMessage]);
+      setNewMessage('');
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        if (flatListRef.current) {
+          flatListRef.current.scrollToEnd({ animated: true });
+        }
+      }, 100);
+
+      // Send the message to the server
       const response = await fetch(`${API_URL}/chat/send`, {
         method: 'POST',
         headers: {
@@ -186,25 +210,19 @@ const ChatScreen = ({ route }) => {
       });
 
       const data = await response.json();
-      if (data.success) {
-        console.log('Message sent successfully');
-        setNewMessage('');
-      } else {
+      if (!data.success) {
         throw new Error(data.message || 'Failed to send message');
       }
     } catch (error) {
       console.error('Send message error:', error);
       Alert.alert('Error', 'Failed to send message. Please try again.');
+      // Remove the temporary message if sending failed
+      setMessages(prevMessages => prevMessages.filter(m => m._id !== tempMessage._id));
     }
   };
 
   const renderMessage = ({ item }) => {
-    // Debug logs
-    console.log('Rendering message:', item);
-    console.log('Current user:', currentUser?._id);
-    console.log('Message sender:', item.sender);
-
-    const isSentByMe = item.sender === currentUser?._id;
+    const isSentByMe = item.sender.toString() === currentUser?._id.toString();
 
     return (
       <View
@@ -349,6 +367,8 @@ const styles = StyleSheet.create({
   messageRow: {
     flexDirection: 'row',
     marginBottom: 12,
+    width: '100%',
+    paddingHorizontal: 8,
   },
   sentMessageRow: {
     justifyContent: 'flex-end',
@@ -357,7 +377,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   messageContainer: {
-    maxWidth: width * 0.75,
+    maxWidth: '70%',
     padding: 12,
     borderRadius: 20,
     elevation: 1,
