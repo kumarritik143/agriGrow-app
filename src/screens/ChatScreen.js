@@ -295,7 +295,7 @@ const ChatScreen = ({ route }) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.content}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}>
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     padding: 16,
+    paddingBottom: 8,
   },
   messageRow: {
     flexDirection: 'row',
@@ -418,7 +419,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    padding: 12,
+    padding: 8,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
