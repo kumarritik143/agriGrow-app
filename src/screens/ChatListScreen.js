@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
-import { chatAPI } from '../api/apiService';
+import {useNavigation} from '@react-navigation/native';
+import {chatAPI} from '../api/apiService';
 
 const ChatListScreen = () => {
   const [participants, setParticipants] = useState([]);
@@ -28,13 +28,16 @@ const ChatListScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('Fetching participants...');
       const response = await chatAPI.getChatParticipants();
       console.log('Raw API response:', JSON.stringify(response, null, 2));
-      
+
       if (response.success) {
-        console.log('Setting participants:', JSON.stringify(response.data, null, 2));
+        console.log(
+          'Setting participants:',
+          JSON.stringify(response.data, null, 2),
+        );
         setParticipants(response.data);
       } else {
         throw new Error(response.message || 'Failed to fetch participants');
@@ -48,41 +51,37 @@ const ChatListScreen = () => {
         [
           {
             text: 'Retry',
-            onPress: () => fetchParticipants()
+            onPress: () => fetchParticipants(),
           },
           {
             text: 'OK',
-            style: 'cancel'
-          }
-        ]
+            style: 'cancel',
+          },
+        ],
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const renderParticipant = ({ item }) => {
+  const renderParticipant = ({item}) => {
     console.log('Rendering participant:', JSON.stringify(item, null, 2));
-    
-    // The name field will contain either the admin's name or user's fullName
+
     const displayName = item.name || item.email;
     console.log('Display name determined:', {
       name: item.name,
       email: item.email,
       isAdmin: item.isAdmin,
-      finalDisplayName: displayName
+      finalDisplayName: displayName,
     });
-    
+
     return (
       <TouchableOpacity
         style={styles.participantCard}
-        onPress={() => navigation.navigate('Chat', { participant: item })}>
+        onPress={() => navigation.navigate('Chat', {participant: item})}>
         <View style={styles.avatarContainer}>
           {item.profileImage ? (
-            <Image
-              source={{ uri: item.profileImage }}
-              style={styles.avatar}
-            />
+            <Image source={{uri: item.profileImage}} style={styles.avatar} />
           ) : (
             <Icon name="person" size={30} color="#666666" />
           )}
@@ -111,7 +110,7 @@ const ChatListScreen = () => {
       <FlatList
         data={participants}
         renderItem={renderParticipant}
-        keyExtractor={(item) => item._id}
+        keyExtractor={item => item._id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>

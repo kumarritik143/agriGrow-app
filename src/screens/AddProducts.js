@@ -37,10 +37,10 @@ const AddProducts = () => {
   const handleImagePick = async () => {
     const options = {
       mediaType: 'photo',
-      includeBase64: true, // Change to true to get base64 directly
-      maxHeight: 1024, // Reduce max dimensions
+      includeBase64: true,
+      maxHeight: 1024,
       maxWidth: 1024,
-      quality: 0.7, // Reduce quality to decrease file size
+      quality: 0.7,
     };
 
     try {
@@ -56,7 +56,6 @@ const AddProducts = () => {
         const selectedImage = response.assets[0];
         console.log('Selected image:', selectedImage.uri);
 
-        // Use base64 directly from the response
         setProductData(prevState => ({
           ...prevState,
           image: selectedImage.uri,
@@ -127,8 +126,6 @@ const AddProducts = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
-
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
           <Icon name="arrow-back" size={24} color="#FFFFFF" />
@@ -290,8 +287,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 10,
-    minHeight: 50, // Add fixed height to prevent button size change
-    justifyContent: 'center', // Center the spinner/text vertically
+    minHeight: 50, 
+    justifyContent: 'center', 
   },
   saveButtonDisabled: {
     backgroundColor: '#4CAF50',

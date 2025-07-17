@@ -14,7 +14,7 @@ import {useNavigation} from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../context/AuthContext';
-import {adminAPI} from '../api/apiService'; // Adjust the import path as necessary
+import {adminAPI} from '../api/apiService';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // const API_URL = 'http://localhost:5001/api'; // Use your API URL
@@ -36,25 +36,20 @@ const AdminLogin = () => {
 
     try {
       setIsLoading(true);
-      console.log('Attempting admin login with:', {email}); // Debug log
+      console.log('Attempting admin login with:', {email});
 
       const response = await adminAPI.login({
         email,
         password,
       });
 
-      console.log('Admin login successful:', response); // Debug log
+      console.log('Admin login successful:', response);
 
       if (response.success) {
         await signIn(response.token, {...response.admin, isAdmin: true});
-        // navigation.reset({
-        //   index: 0,
-        //   routes: [{ name: 'AdminDashboard' }],
-        // });
-        // navigation.navigate('AdminDashboard');
       }
     } catch (error) {
-      console.log('Admin login failed:', error); // Debug log
+      console.log('Admin login failed:', error);
       Alert.alert('Error', error.message || 'Invalid admin credentials');
     } finally {
       setIsLoading(false);
@@ -68,8 +63,6 @@ const AdminLogin = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
-
-      {/* Add Back Button Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Icon name="arrow-back" size={24} color="#4CAF50" />

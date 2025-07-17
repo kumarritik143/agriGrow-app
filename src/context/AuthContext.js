@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Alert} from 'react-native';
-import {authAPI} from '../api/apiService'; // Change this line to import from apiService
+import {authAPI} from '../api/apiService';
 
 export const AuthContext = React.createContext();
 
@@ -11,14 +11,11 @@ export const AuthProvider = ({children}) => {
 
   const signOut = async () => {
     try {
-      // Store the user profile image URL before clearing data
       const userData = await AsyncStorage.getItem('userData');
       const {profileImage} = JSON.parse(userData || '{}');
 
-      // Clear auth data
       await AsyncStorage.multiRemove(['userToken', 'userData']);
 
-      // If there was a profile image, store it separately
       if (profileImage) {
         await AsyncStorage.setItem('lastProfileImage', profileImage);
       }
@@ -37,10 +34,8 @@ export const AuthProvider = ({children}) => {
       if (response.success) {
         const {token, user} = response;
 
-        // Get the last profile image if it exists
         const lastProfileImage = await AsyncStorage.getItem('lastProfileImage');
 
-        // Merge with new user data
         const userData = {
           ...user,
           profileImage: user.profileImage || lastProfileImage || '',

@@ -11,7 +11,6 @@ import {AuthContext} from './context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AdminLogin from './screens/AdminLogin';
 import AdminDashboard from './screens/AdminDashboard';
-import {set} from 'mongoose';
 import AddProducts from './screens/AddProducts';
 import UserProfile from './screens/UserProfile';
 import ProductDetail from './screens/ProductDetail';
@@ -20,11 +19,43 @@ import {CartProvider} from './context/CartContext';
 import ManageProducts from './screens/ManageProducts';
 import EditProduct from './screens/EditProduct';
 import SuccessScreen from './screens/SuccessScreen';
-
 import ChatListScreen from './screens/ChatListScreen';
 import ChatScreen from './screens/ChatScreen';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import OrdersScreen from './screens/OrdersScreen'; // (to be created)
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function CustomerTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#4CAF50',
+        tabBarInactiveTintColor: '#888',
+        tabBarStyle: { backgroundColor: '#fff', borderTopWidth: 0, height: 60 },
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+          if (route.name === 'Dashboard') iconName = 'dashboard';
+          else if (route.name === 'Products') iconName = 'shopping-bag';
+          else if (route.name === 'ChatList') iconName = 'chat';
+          else if (route.name === 'UserProfile') iconName = 'person';
+          else if (route.name === 'Cart') iconName = 'shopping-cart';
+          return <Icon name={iconName} size={size} color={color} />;
+        },
+        tabBarLabelStyle: { fontSize: 12, marginBottom: 0 },
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={AgrigrowDashboard} />
+      <Tab.Screen name="Products" component={ProductsScreen} />
+      <Tab.Screen name="ChatList" component={ChatListScreen} options={{ title: 'Chat' }} />
+      <Tab.Screen name="UserProfile" component={UserProfile} options={{ title: 'Profile' }} />
+      <Tab.Screen name="Cart" component={CartScreen} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -74,11 +105,9 @@ export default function App() {
     [isAdmin],
   );
   useEffect(() => {
-    // Check for user token AND show splash screen
     const initializeApp = async () => {
-      await checkUserToken(); // This was missing
+      await checkUserToken();
 
-      // Still show splash for minimum 2 seconds
       setTimeout(() => {
         setIsLoading(false);
       }, 2000);
@@ -96,7 +125,6 @@ export default function App() {
               <Stack.Screen name="Splash" component={SplashScreen} />
             ) : userToken ? (
               isAdmin ? (
-                // Admin is logged in
                 <>
                   <Stack.Screen
                     name="AdminDashboard"
@@ -113,26 +141,15 @@ export default function App() {
                   <Stack.Screen name="Chat" component={ChatScreen} />
                 </>
               ) : (
-                // Regular user is logged in
                 <>
-                  <Stack.Screen
-                    name="AgrigrowDashboard"
-                    component={AgrigrowDashboard}
-                  />
-                  <Stack.Screen name="Products" component={ProductsScreen} />
-                  <Stack.Screen name="UserProfile" component={UserProfile} />
-                  <Stack.Screen
-                    name="ProductDetail"
-                    component={ProductDetail}
-                  />
-                  <Stack.Screen name="Cart" component={CartScreen} />
+                  <Stack.Screen name="CustomerTabs" component={CustomerTabs} />
+                  <Stack.Screen name="ProductDetail" component={ProductDetail} />
                   <Stack.Screen name="Success" component={SuccessScreen} />
-                  <Stack.Screen name="ChatList" component={ChatListScreen} />
                   <Stack.Screen name="Chat" component={ChatScreen} />
+                  <Stack.Screen name="Orders" component={OrdersScreen} />
                 </>
               )
             ) : (
-              // Not logged in
               <>
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="SignUp" component={SignUpScreen} />

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
@@ -19,6 +18,11 @@ const SuccessScreen = () => {
   const handleContinueShopping = () => {
     clearCart();
     navigation.navigate('Products');
+  };
+
+  const handleViewOrders = () => {
+    clearCart();
+    navigation.navigate('Orders');
   };
 
   return (
@@ -37,8 +41,8 @@ const SuccessScreen = () => {
 
         <TouchableOpacity
           style={styles.continueButton}
-          onPress={handleContinueShopping}>
-          <Text style={styles.continueButtonText}>Continue Shopping</Text>
+          onPress={handleViewOrders}>
+          <Text style={styles.continueButtonText}>View Orders</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

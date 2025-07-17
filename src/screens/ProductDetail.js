@@ -39,7 +39,7 @@ const ProductDetail = ({route}) => {
         },
         {
           text: 'Go to Cart',
-          onPress: () => navigation.navigate('Cart'),
+          onPress: () => navigation.navigate('CustomerTabs', { screen: 'Cart' }),
         },
       ]
     );
@@ -49,7 +49,6 @@ const ProductDetail = ({route}) => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
           <Icon name="arrow-back" size={24} color="#FFFFFF" />
@@ -57,7 +56,7 @@ const ProductDetail = ({route}) => {
         <Text style={styles.headerTitle}>Product Details</Text>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.navigate('Cart')}>
+          onPress={() => navigation.navigate('CustomerTabs', { screen: 'Cart' })}>
           <Icon name="shopping-cart" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -84,8 +83,6 @@ const ProductDetail = ({route}) => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Add to Cart Button - Fixed at bottom */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity
           style={styles.addToCartButton}
@@ -140,7 +137,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingBottom: 80, // Space for the bottom button
+    paddingBottom: 80, 
   },
   productImage: {
     width: width,

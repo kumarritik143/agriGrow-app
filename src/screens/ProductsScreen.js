@@ -46,9 +46,10 @@ const ProductsScreen = () => {
     if (searchQuery.trim() === '') {
       setFilteredProducts(products);
     } else {
-      const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchQuery.toLowerCase())
+      const filtered = products.filter(
+        product =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.brand.toLowerCase().includes(searchQuery.toLowerCase()),
       );
       setFilteredProducts(filtered);
     }
@@ -93,7 +94,6 @@ const ProductsScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
           <Icon name="arrow-back" size={24} color="#FFFFFF" />
@@ -101,14 +101,18 @@ const ProductsScreen = () => {
         <Text style={styles.headerTitle}>Products</Text>
         <TouchableOpacity
           style={styles.headerButton}
-          onPress={() => navigation.navigate('Cart')}>
+          onPress={() => navigation.navigate('CustomerTabs', { screen: 'Cart' })}>
           <Icon name="shopping-cart" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
-      {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Icon name="search" size={24} color="#666666" style={styles.searchIcon} />
+        <Icon
+          name="search"
+          size={24}
+          color="#666666"
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search products..."
@@ -125,7 +129,6 @@ const ProductsScreen = () => {
         )}
       </View>
 
-      {/* Products List */}
       <FlatList
         data={filteredProducts}
         renderItem={({item}) => (

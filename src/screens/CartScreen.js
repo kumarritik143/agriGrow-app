@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,36 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Modal,
+  TextInput,
+  ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../context/CartContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { authAPI, orderAPI } from '../api/apiService';
+import RazorpayCheckout from 'react-native-razorpay';
 
 const CartScreen = () => {
   const navigation = useNavigation();
-  const { cartItems, removeFromCart, updateQuantity, isLoading } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, isLoading, clearCart } = useCart();
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
+  const [address, setAddress] = useState({});
+
+  useEffect(() => {
+    fetchAddress();
+  }, []);
+
+  const fetchAddress = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const addr = await authAPI.getAddress(token);
+      setAddress(addr || {});
+    } catch (error) {
+      setAddress({});
+    }
+  };
 
   const handleBack = () => {
     navigation.goBack();
@@ -27,12 +49,94 @@ const CartScreen = () => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cartItems.length === 0) {
       Alert.alert('Empty Cart', 'Your cart is empty. Please add items to proceed.');
       return;
     }
-    navigation.navigate('Success');
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const orderProducts = cartItems.map(item => ({
+        product: item._id,
+        quantity: item.quantity,
+      }));
+      const total = calculateTotal();
+
+      // 1. Create Razorpay order on backend (amount in paise)
+      const razorpayOrderRes = await orderAPI.createRazorpayOrder({ amount: total * 100 }, token);
+      if (!razorpayOrderRes.success) {
+        Alert.alert('Payment Error', razorpayOrderRes.message || 'Failed to initiate payment.');
+        return;
+      }
+
+      const options = {
+        description: 'Order Payment',
+        image: 'https://res.cloudinary.com/ritik-kumar/image/upload/v1752751232/logo_rmuzej.png', // Your Cloudinary logo
+        currency: 'INR',
+        key: 'rzp_test_5PWScC3j0RpBhf', // Your Razorpay key
+        amount: razorpayOrderRes.amount, // in paise
+        name: 'AgriGrow',
+        order_id: razorpayOrderRes.order_id, // from backend
+        prefill: {
+          email: address.email || 'user@example.com',
+          contact: address.phone || '',
+          name: address.name || '',
+        },
+        theme: { color: '#4CAF50' },
+      };
+
+      RazorpayCheckout.open(options)
+        .then(async (data) => {
+          // 2. On payment success, place the order in your backend
+          const res = await orderAPI.placeOrder(
+            {
+              products: orderProducts,
+              total,
+              address,
+              paymentId: data.razorpay_payment_id,
+              razorpayOrderId: data.razorpay_order_id,
+              signature: data.razorpay_signature,
+            },
+            token
+          );
+          if (res.success) {
+            await clearCart();
+            navigation.navigate('Success');
+          } else {
+            Alert.alert('Order Failed', res.message || 'Could not place order.');
+          }
+        })
+        .catch((error) => {
+          Alert.alert('Payment Failed', error.description || 'Payment was not completed.');
+        });
+    } catch (error) {
+      Alert.alert('Order Failed', error.message || 'Could not place order.');
+    }
+  };
+
+  const handleAddAddress = () => {
+    setAddressModalVisible(true);
+  };
+
+  const handleAddressChange = (field, value) => {
+    setAddress(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddressSubmit = async () => {
+    // Simple validation
+    if (!address.name || !address.phone || !address.pincode || !address.state || !address.city || !address.houseNumber || !address.village || !address.areaName) {
+      Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      await authAPI.updateAddress(address, token);
+      Alert.alert('Success', 'Address saved successfully!');
+      setAddressModalVisible(false);
+      fetchAddress(); // Refresh address after saving
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to save address');
+    }
   };
 
   const renderItem = ({ item }) => (
@@ -109,11 +213,49 @@ const CartScreen = () => {
             <Text style={styles.totalText}>Total:</Text>
             <Text style={styles.totalAmount}>₹{calculateTotal()}</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.checkoutButton}
-            onPress={handleCheckout}>
-            <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-          </TouchableOpacity>
+          {address && address.name
+            ? (
+                <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
+                  <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
+                </TouchableOpacity>
+              )
+            : (
+                <TouchableOpacity style={styles.checkoutButton} onPress={handleAddAddress}>
+                  <Text style={styles.checkoutButtonText}>Add Address</Text>
+                </TouchableOpacity>
+              )
+          }
+          <Modal
+            visible={addressModalVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setAddressModalVisible(false)}
+          >
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+              <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 20, width: '90%' }}>
+                <ScrollView>
+                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>Add Address</Text>
+                  <TextInput placeholder="Name" value={address.name} onChangeText={v => handleAddressChange('name', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="Phone Number" value={address.phone} onChangeText={v => handleAddressChange('phone', v)} keyboardType="phone-pad" style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="Pincode" value={address.pincode} onChangeText={v => handleAddressChange('pincode', v)} keyboardType="number-pad" style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="State" value={address.state} onChangeText={v => handleAddressChange('state', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="City" value={address.city} onChangeText={v => handleAddressChange('city', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="House Number" value={address.houseNumber} onChangeText={v => handleAddressChange('houseNumber', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="Village" value={address.village} onChangeText={v => handleAddressChange('village', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="Area Name" value={address.areaName} onChangeText={v => handleAddressChange('areaName', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <TextInput placeholder="Nearby" value={address.nearby} onChangeText={v => handleAddressChange('nearby', v)} style={{ borderBottomWidth: 1, marginBottom: 10 }} />
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                    <TouchableOpacity onPress={() => setAddressModalVisible(false)} style={{ padding: 12, backgroundColor: '#ccc', borderRadius: 6, flex: 1, marginRight: 10 }}>
+                      <Text style={{ textAlign: 'center', color: '#333' }}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleAddressSubmit} style={{ padding: 12, backgroundColor: '#4CAF50', borderRadius: 6, flex: 1 }}>
+                      <Text style={{ textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>Save Address</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              </View>
+            </View>
+          </Modal>
         </>
       ) : (
         <View style={styles.emptyCart}>

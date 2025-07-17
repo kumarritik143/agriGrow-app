@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -14,15 +14,15 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import io from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../api/apiService';
+import {API_URL} from '../api/apiService';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-const ChatScreen = ({ route }) => {
-  const { participant } = route.params;
+const ChatScreen = ({route}) => {
+  const {participant} = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -65,10 +65,10 @@ const ChatScreen = ({ route }) => {
       forceNew: true,
       allowEIO3: true,
       query: {
-        EIO: '3'
-      }
+        EIO: '3',
+      },
     });
-    
+
     const socket = socketRef.current;
 
     socket.on('connect', () => {
@@ -78,31 +78,36 @@ const ChatScreen = ({ route }) => {
       socket.emit('joinRoom', roomId);
     });
 
-    socket.on('newMessage', (message) => {
+    socket.on('newMessage', message => {
       console.log('New message received:', message);
       if (
-        (message.senderId === participant._id && message.receiverId === currentUser._id) ||
-        (message.receiverId === participant._id && message.senderId === currentUser._id)
+        (message.senderId === participant._id &&
+          message.receiverId === currentUser._id) ||
+        (message.receiverId === participant._id &&
+          message.senderId === currentUser._id)
       ) {
         console.log('Message is for this chat, updating state');
         setMessages(prevMessages => {
           const messageExists = prevMessages.some(m => m._id === message._id);
           if (!messageExists) {
-            const updatedMessages = [...prevMessages, {
-              ...message,
-              sender: message.senderId,
-              receiver: message.receiverId
-            }];
+            const updatedMessages = [
+              ...prevMessages,
+              {
+                ...message,
+                sender: message.senderId,
+                receiver: message.receiverId,
+              },
+            ];
             console.log('Updated messages count:', updatedMessages.length);
             return updatedMessages;
           }
           return prevMessages;
         });
-        
+
         setTimeout(() => {
           if (flatListRef.current) {
             console.log('Scrolling to bottom');
-            flatListRef.current.scrollToEnd({ animated: true });
+            flatListRef.current.scrollToEnd({animated: true});
           }
         }, 100);
       } else {
@@ -114,11 +119,11 @@ const ChatScreen = ({ route }) => {
       console.log('Socket disconnected');
     });
 
-    socket.on('error', (error) => {
+    socket.on('error', error => {
       console.error('Socket error:', error);
     });
 
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', error => {
       console.error('Socket connection error:', error);
     });
 
@@ -141,21 +146,18 @@ const ChatScreen = ({ route }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
         const data = await response.json();
         if (data.success) {
           setMessages(data.data);
           setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: false });
+            flatListRef.current?.scrollToEnd({animated: false});
           }, 100);
         }
       } catch (error) {
         console.error('Fetch messages error:', error);
-        Alert.alert(
-          'Error',
-          'Failed to load messages. Please try again.'
-        );
+        Alert.alert('Error', 'Failed to load messages. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -176,7 +178,6 @@ const ChatScreen = ({ route }) => {
         throw new Error('No authentication token found');
       }
 
-      // Send the message to the server
       const response = await fetch(`${API_URL}/chat/send`, {
         method: 'POST',
         headers: {
@@ -194,7 +195,6 @@ const ChatScreen = ({ route }) => {
         throw new Error(data.message || 'Failed to send message');
       }
 
-      // Clear the input field
       setNewMessage('');
     } catch (error) {
       console.error('Send message error:', error);
@@ -202,7 +202,7 @@ const ChatScreen = ({ route }) => {
     }
   };
 
-  const renderMessage = ({ item }) => {
+  const renderMessage = ({item}) => {
     const isSentByMe = item.sender.toString() === currentUser?._id.toString();
 
     return (
@@ -281,7 +281,7 @@ const ChatScreen = ({ route }) => {
           ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
-          keyExtractor={(item) => item._id}
+          keyExtractor={item => item._id}
           contentContainerStyle={styles.messagesList}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
           onLayout={() => flatListRef.current?.scrollToEnd()}
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     elevation: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.2,
     shadowRadius: 1,
   },

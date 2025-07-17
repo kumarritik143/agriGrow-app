@@ -9,15 +9,15 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {authAPI} from '../api/apiService'; // Adjust the import path as necessary
-import { AuthContext } from '../context/AuthContext';
+import {authAPI} from '../api/apiService';
+import {AuthContext} from '../context/AuthContext';
 
 const LoginScreen = () => {
-  const { signIn } = React.useContext(AuthContext);
+  const {signIn} = React.useContext(AuthContext);
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,15 +39,14 @@ const LoginScreen = () => {
 
       await signIn(response.token, response.user);
 
-      // Store token in AsyncStorage
       await AsyncStorage.setItem('userToken', response.token);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
 
       setIsLoading(false);
-      // navigation.navigate('ProductDashboard');
+
       navigation.reset({
         index: 0,
-        routes: [{ name: 'AgrigrowDashboard' }],
+        routes: [{name: 'CustomerTabs'}],
       });
     } catch (error) {
       setIsLoading(false);
@@ -62,8 +61,6 @@ const LoginScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-
-      {/* App Bar */}
       <View style={styles.appBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -77,7 +74,6 @@ const LoginScreen = () => {
         <View style={styles.appBarRight} />
       </View>
 
-      {/* Decorative circles */}
       <View style={styles.greenCircleLeft} />
       <View style={styles.coralCircle} />
       <View style={styles.greenCircleRight} />

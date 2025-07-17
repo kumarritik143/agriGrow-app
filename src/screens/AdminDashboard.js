@@ -38,8 +38,6 @@ const AdminDashboard = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
-
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Admin Dashboard</Text>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -48,7 +46,6 @@ const AdminDashboard = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeText}>Welcome, Admin!</Text>
           <Text style={styles.subtitle}>
@@ -56,18 +53,16 @@ const AdminDashboard = () => {
           </Text>
         </View>
 
-        {/* Admin Role Description */}
         <View style={styles.descriptionSection}>
           <Text style={styles.sectionTitle}>Your Role</Text>
           <Text style={styles.descriptionText}>
-            As an administrator of AgriGrow, you play a crucial role in maintaining
-            the quality and efficiency of our agricultural marketplace. Your
-            responsibilities include managing products, ensuring quality control,
-            and maintaining the platform's integrity.
+            As an administrator of AgriGrow, you play a crucial role in
+            maintaining the quality and efficiency of our agricultural
+            marketplace. Your responsibilities include managing products,
+            ensuring quality control, and maintaining the platform's integrity.
           </Text>
         </View>
 
-        {/* Key Responsibilities */}
         <View style={styles.responsibilitiesSection}>
           <Text style={styles.sectionTitle}>Key Responsibilities</Text>
           <View style={styles.responsibilityList}>
@@ -98,7 +93,6 @@ const AdminDashboard = () => {
           </View>
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.actionsSection}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.featuresGrid}>

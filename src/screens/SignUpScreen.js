@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {authAPI} from '../api/apiService'; // Adjust the import path as necessary
+import {authAPI} from '../api/apiService';
 
 const SignUpScreen = () => {
   const navigation = useNavigation();
@@ -23,10 +23,6 @@ const SignUpScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // const handleSignUp = () => {
-  //   // Implement sign up logic here
-  //   console.log('Sign up with:', {fullName, email, password});
-  // };
 
   const handleSignUp = async () => {
     if (!fullName || !email || !password) {
@@ -44,7 +40,6 @@ const SignUpScreen = () => {
 
       const response = await authAPI.register(userData);
 
-      // Store token in AsyncStorage
       await AsyncStorage.setItem('userToken', response.token);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
 
@@ -52,7 +47,7 @@ const SignUpScreen = () => {
       Alert.alert('Success', 'Account created successfully', [
         {
           text: 'OK',
-          // onPress: () => navigation.navigate('ProductDashboard'),
+  
         },
       ]);
     } catch (error) {
@@ -69,7 +64,6 @@ const SignUpScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
 
-      {/* App Bar */}
       <View style={styles.appBar}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -80,12 +74,9 @@ const SignUpScreen = () => {
           />
         </TouchableOpacity>
         <View style={styles.appBarTitleContainer}>
-          {/* <Text style={styles.appBarTitle}>Sign Up</Text> */}
         </View>
         <View style={styles.appBarRight} />
       </View>
-
-      {/* Decorative circles */}
       <View style={styles.greenCircleLeft} />
       <View style={styles.coralCircle} />
       <View style={styles.greenCircleRight} />
@@ -98,7 +89,10 @@ const SignUpScreen = () => {
           style={[styles.input, styles.nameInput]}
           placeholder="Full name"
           value={fullName}
-          onChangeText={setFullName}
+          onChangeText={(text) => {
+            const alphabetOnly = text.replace(/[^a-zA-Z\s]/g, '');
+            setFullName(alphabetOnly);
+          }}
         />
 
         <Text style={styles.inputLabel}>E-mail</Text>
@@ -187,8 +181,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#FFFFFF',
-    elevation: 0, // for Android
-    shadowOpacity: 0, // for iOS
+    elevation: 0,
+    shadowOpacity: 0, 
   },
   backButton: {
     padding: 8,
@@ -207,7 +201,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   appBarRight: {
-    width: 40, // To balance the back button and keep title centered
+    width: 40, 
   },
   greenCircleLeft: {
     position: 'absolute',
@@ -270,7 +264,7 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     borderColor: '#4CAF50',
-    paddingRight: 50, // Space for the eye icon
+    paddingRight: 50,
   },
   eyeIcon: {
     position: 'absolute',
