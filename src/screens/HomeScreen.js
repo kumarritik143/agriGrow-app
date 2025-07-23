@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {useNavigation} from '@react-navigation/native';
 

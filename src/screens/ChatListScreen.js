@@ -5,16 +5,20 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   ActivityIndicator,
   Alert,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import {chatAPI} from '../api/apiService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ChatListScreen = () => {
+  const insets = useSafeAreaInsets();
+  const topPadding = Platform.OS === 'android' ? (insets.top || StatusBar.currentHeight || 0) : insets.top;
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,7 +100,7 @@ const ChatListScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right }]}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
@@ -119,7 +123,7 @@ const ChatListScreen = () => {
           </View>
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

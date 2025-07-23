@@ -6,7 +6,6 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Alert,
@@ -14,12 +13,13 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { useCart } from '../context/CartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI, orderAPI } from '../api/apiService';
-import RazorpayCheckout from 'react-native-razorpay';
 
 const CartScreen = () => {
   const navigation = useNavigation();
@@ -85,30 +85,19 @@ const CartScreen = () => {
         theme: { color: '#4CAF50' },
       };
 
-      RazorpayCheckout.open(options)
-        .then(async (data) => {
-          // 2. On payment success, place the order in your backend
-          const res = await orderAPI.placeOrder(
-            {
-              products: orderProducts,
-              total,
-              address,
-              paymentId: data.razorpay_payment_id,
-              razorpayOrderId: data.razorpay_order_id,
-              signature: data.razorpay_signature,
-            },
-            token
-          );
-          if (res.success) {
-            await clearCart();
-            navigation.navigate('Success');
-          } else {
-            Alert.alert('Order Failed', res.message || 'Could not place order.');
-          }
+      navigation.dispatch(
+        CommonActions.navigate({
+          name: 'Payment',
+          params: {
+            razorpayOptions: options,
+            orderProducts,
+            total,
+            address,
+            token,
+            onSuccessScreen: 'Success',
+          },
         })
-        .catch((error) => {
-          Alert.alert('Payment Failed', error.description || 'Payment was not completed.');
-        });
+      );
     } catch (error) {
       Alert.alert('Order Failed', error.message || 'Could not place order.');
     }

@@ -3,11 +3,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, {useContext} from 'react';
 import {AuthContext} from '../context/AuthContext';
 import {useNavigation} from '@react-navigation/native';

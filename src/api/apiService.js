@@ -2,8 +2,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Platform} from 'react-native';
 
-// const API_URL = 'http://127.0.0.1:5001/api';
-const API_URL = 'https://agrigrow-backend.onrender.com/api';
+const API_URL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:5001/api'
+    : 'http://localhost:5001/api';
+// const API_URL = 'https://agrigrow-backend.onrender.com/api';
 
 console.log('Platform:', Platform.OS);
 console.log('Using API URL:', API_URL);

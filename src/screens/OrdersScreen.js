@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { orderAPI } from '../api/apiService';
 import Icon from 'react-native-vector-icons/MaterialIcons';

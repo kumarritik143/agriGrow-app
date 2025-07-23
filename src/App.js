@@ -24,6 +24,8 @@ import ChatScreen from './screens/ChatScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import OrdersScreen from './screens/OrdersScreen'; // (to be created)
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import PaymentScreen from './screens/PaymentScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -117,49 +119,52 @@ export default function App() {
   }, []);
 
   return (
-    <AuthContext.Provider value={authContext}>
-      <CartProvider>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{headerShown: false}}>
-            {isLoading ? (
-              <Stack.Screen name="Splash" component={SplashScreen} />
-            ) : userToken ? (
-              isAdmin ? (
-                <>
-                  <Stack.Screen
-                    name="AdminDashboard"
-                    component={AdminDashboard}
-                    options={{gestureEnabled: false}}
-                  />
-                  <Stack.Screen name="AddProduct" component={AddProducts} />
-                  <Stack.Screen
-                    name="ManageProducts"
-                    component={ManageProducts}
-                  />
-                  <Stack.Screen name="EditProduct" component={EditProduct} />
-                  <Stack.Screen name="ChatList" component={ChatListScreen} />
-                  <Stack.Screen name="Chat" component={ChatScreen} />
-                </>
+    <SafeAreaProvider>
+      <AuthContext.Provider value={authContext}>
+        <CartProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{headerShown: false}}>
+              {isLoading ? (
+                <Stack.Screen name="Splash" component={SplashScreen} />
+              ) : userToken ? (
+                isAdmin ? (
+                  <>
+                    <Stack.Screen
+                      name="AdminDashboard"
+                      component={AdminDashboard}
+                      options={{gestureEnabled: false}}
+                    />
+                    <Stack.Screen name="AddProduct" component={AddProducts} />
+                    <Stack.Screen
+                      name="ManageProducts"
+                      component={ManageProducts}
+                    />
+                    <Stack.Screen name="EditProduct" component={EditProduct} />
+                    <Stack.Screen name="ChatList" component={ChatListScreen} />
+                    <Stack.Screen name="Chat" component={ChatScreen} />
+                  </>
+                ) : (
+                  <>
+                    <Stack.Screen name="CustomerTabs" component={CustomerTabs} />
+                    <Stack.Screen name="ProductDetail" component={ProductDetail} />
+                    <Stack.Screen name="Success" component={SuccessScreen} />
+                    <Stack.Screen name="Chat" component={ChatScreen} />
+                    <Stack.Screen name="Orders" component={OrdersScreen} />
+                    <Stack.Screen name="Payment" component={PaymentScreen} options={{ presentation: 'modal', headerShown: false }} />
+                  </>
+                )
               ) : (
                 <>
-                  <Stack.Screen name="CustomerTabs" component={CustomerTabs} />
-                  <Stack.Screen name="ProductDetail" component={ProductDetail} />
-                  <Stack.Screen name="Success" component={SuccessScreen} />
-                  <Stack.Screen name="Chat" component={ChatScreen} />
-                  <Stack.Screen name="Orders" component={OrdersScreen} />
+                  <Stack.Screen name="Home" component={HomeScreen} />
+                  <Stack.Screen name="SignUp" component={SignUpScreen} />
+                  <Stack.Screen name="Login" component={LoginScreen} />
+                  <Stack.Screen name="AdminLogin" component={AdminLogin} />
                 </>
-              )
-            ) : (
-              <>
-                <Stack.Screen name="Home" component={HomeScreen} />
-                <Stack.Screen name="SignUp" component={SignUpScreen} />
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="AdminLogin" component={AdminLogin} />
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </CartProvider>
-    </AuthContext.Provider>
+              )}
+            </Stack.Navigator>
+          </NavigationContainer>
+        </CartProvider>
+      </AuthContext.Provider>
+    </SafeAreaProvider>
   );
 }

@@ -7,10 +7,10 @@ import {
   ScrollView,
   Alert,
   Image,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, {useState, useContext} from 'react';
 import {launchImageLibrary} from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';

@@ -6,13 +6,14 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
   ActivityIndicator,
   Alert,
+  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useNavigation} from '@react-navigation/native';
 import io from 'socket.io-client';
@@ -30,6 +31,8 @@ const ChatScreen = ({route}) => {
   const navigation = useNavigation();
   const socketRef = useRef(null);
   const flatListRef = useRef(null);
+  const insets = useSafeAreaInsets();
+  const topPadding = Platform.OS === 'android' ? (insets.top || StatusBar.currentHeight || 0) : insets.top;
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -240,7 +243,8 @@ const ChatScreen = ({route}) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { paddingTop: topPadding, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right }]}>
+        <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerButton}
@@ -255,12 +259,13 @@ const ChatScreen = ({route}) => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4CAF50" />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right }]}>
+      <StatusBar backgroundColor="#4CAF50" barStyle="light-content" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerButton}
@@ -311,7 +316,7 @@ const ChatScreen = ({route}) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
